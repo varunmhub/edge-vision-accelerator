@@ -38,7 +38,7 @@ module pe_array_3x3 #(
         end
     endgenerate
 
-        // ---- stage 1: products + adder tree levels 1-2 (combinational) ----
+    // ---- stage 1: products + adder tree levels 1-2 (combinational) ----
     wire signed [14:0] s0 = prod[0] + prod[1];
     wire signed [14:0] s1 = prod[2] + prod[3];
     wire signed [14:0] s2 = prod[4] + prod[5];

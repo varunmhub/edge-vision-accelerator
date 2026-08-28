@@ -1,12 +1,15 @@
-`timescale 1ns/1ps
+`timescale 1ns / 1ps
 // SWEEP VARIANT -- synthesis-only, feeds the BRAM/LUT width table.
 // Addressed circular buffer so the arrays can infer real memory. The read is
-// registered (memory inference requires that), so row0/row1 lag row2 by one
-// cycle -- do not drop this into the datapath without adding the matching delay.
-// Functional verification stays on the shift version in line_buffer.v.
+// registered, so row0/row1 lag row2 by one cycle -- do not drop this into the
+// datapath without adding the matching delay. Functional verification stays on
+// the shift version in line_buffer.v.
+//
+// DW is the swept parameter: 4 = quantized codes, 8 = unquantized baseline.
+// Left at 8 here, matching the last run recorded in the project notes.
 module line_buffer_ram #(
     parameter IMG_W = 640,
-    parameter DW    = 4          // sweep 4 vs 8
+    parameter DW    = 8          // sweep 4 vs 8
 )(
     input  wire          clk,
     input  wire          rst_n,

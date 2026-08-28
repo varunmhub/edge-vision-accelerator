@@ -1,7 +1,7 @@
-`timescale 1ns/1ps
 // PRIMARY. Both operands are power-of-two codes, so the PRODUCT is itself
 // a power of two. No multiplier and no data shifter -- just an index add,
 // a one-hot shift of a constant 1, and a sign XOR.
+`timescale 1ns / 1ps
 module pe_shift_mult (
     input  wire [3:0]         a_code,  // activation {sign, idx}
     input  wire [3:0]         w_code,  // weight     {sign, idx}

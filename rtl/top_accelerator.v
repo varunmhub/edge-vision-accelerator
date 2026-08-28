@@ -1,8 +1,6 @@
 `timescale 1ns/1ps
 // 8-bit pixel in -> quantize -> line buffer -> 3x3 window -> PE array -> ReLU out.
 // IMG_W / IMG_H are the PADDED dimensions (10 x 10 for an 8x8 image).
-// Total latency is 4 cycles (quantizer 1, window gen 1, PE array 2). Nothing
-// counts cycles: every stage carries its own valid.
 module top_accelerator #(
     parameter IMG_W       = 10,
     parameter IMG_H       = 10,

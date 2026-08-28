@@ -1,7 +1,11 @@
-`timescale 1ns/1ps
+`timescale 1ns / 1ps
 // Two IMG_W-deep shift-register rows. Vivado infers SRL16E at small IMG_W.
 // DW defaults to 4: the buffer stores quantized codes, which is the memory claim.
 // DW = 8 builds the baseline for the width comparison.
+//
+// NOTE: in the Vivado project this module lives in a file called line_buffer1.v.
+// The module name is what matters; the file has been renamed here for clarity.
+
 module line_buffer #(
     parameter IMG_W = 8,
     parameter DW    = 4     // 4 = quantized codes (the claim), 8 = baseline
