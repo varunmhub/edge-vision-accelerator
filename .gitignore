@@ -1,0 +1,17 @@
+# Vivado project artifacts
+*.jou
+*.log
+*.str
+*.cache/
+*.hw/
+*.ip_user_files/
+*.runs/
+*.sim/
+.Xil/
+
+# Generated memory images (regenerate with host/regen_phase1.py)
+mem/
+
+# Python
+__pycache__/
+*.pyc
