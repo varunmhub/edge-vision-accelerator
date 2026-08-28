@@ -38,7 +38,7 @@ module pe_array_3x3 #(
         end
     endgenerate
 
-    // stage 1 of the tree: 9 -> 5 -> 3, one bit of growth per level
+        // ---- stage 1: products + adder tree levels 1-2 (combinational) ----
     wire signed [14:0] s0 = prod[0] + prod[1];
     wire signed [14:0] s1 = prod[2] + prod[3];
     wire signed [14:0] s2 = prod[4] + prod[5];
@@ -49,30 +49,24 @@ module pe_array_3x3 #(
     wire signed [15:0] t1 = s2 + s3;
     wire signed [15:0] t2 = s4;
 
-    // PIPELINE BOUNDARY. Splits the 5-deep carry chain and the ReLU sign test
-    // across two cycles: WNS +0.416 -> +3.747 ns for 33 flip-flops and 4 mW.
-    // Latency becomes 2 cycles here.
+    // ---- pipeline register after level 2 (breaks the carry chain) ----
     reg signed [15:0] t0_q, t1_q, t2_q;
     reg               valid_q;
 
     always @(posedge clk) begin
         if (!rst_n) begin
-            t0_q    <= 16'sd0;
-            t1_q    <= 16'sd0;
-            t2_q    <= 16'sd0;
+            t0_q <= 16'sd0; t1_q <= 16'sd0; t2_q <= 16'sd0;
             valid_q <= 1'b0;
         end else begin
-            t0_q    <= t0;
-            t1_q    <= t1;
-            t2_q    <= t2;
+            t0_q <= t0; t1_q <= t1; t2_q <= t2;
             valid_q <= in_valid;
         end
     end
 
-    // stage 2: 3 -> 1, then bias and ReLU
+    // ---- stage 2: levels 3-4 + bias + ReLU ----
     wire signed [16:0] u0     = t0_q + t1_q;
-    wire signed [17:0] acc    = u0 + t2_q;        // 18-bit, +/-36864 fits
-    wire signed [17:0] biased = acc + bmem[0];    // plain add, same units
+    wire signed [17:0] acc    = u0 + t2_q;
+    wire signed [17:0] biased = acc + bmem[0];
 
     always @(posedge clk) begin
         if (!rst_n) begin
