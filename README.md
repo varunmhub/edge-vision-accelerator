@@ -85,6 +85,7 @@ The weight set is a left-to-right edge detector.
 ```
 rtl/            synthesizable Verilog-2001 sources
 sim/            five self-checking testbenches
+bench/          benchmark-only modules for the area comparison, not in the datapath
 constraints/    Basys 3 pin and timing XDC
 host/           Python: golden-model generator and on-board test script
 ```
@@ -100,6 +101,10 @@ host/           Python: golden-model generator and on-board test script
 | `rtl/top_accelerator.v` | pure wiring of the datapath |
 | `rtl/uart_rx.v`, `rtl/uart_tx.v` | 115200 8N1 serial bridge, `CLKS_PER_BIT = 868` |
 | `rtl/top_basys3.v` | synthesis top: UART in, 64-result buffer, UART out |
+| `bench/pe_mult_baseline.v` | decode-then-multiply PE: the comparison baseline |
+| `bench/pe_array_3x3_baseline.v` | 9 multiplier PEs, otherwise identical to `pe_array_3x3.v` |
+| `bench/pe_array_3x3_varw.v` | shift array with weights supplied at runtime |
+| `bench/pe_array_3x3_baseline_varw.v` | multiplier array with weights supplied at runtime |
 | `host/regen_phase1.py` | writes the 35 `.mem` spec, stimulus and golden files |
 | `host/host_demo.py` | streams 100 pixels over serial, checks 128 returned bytes |
 
@@ -135,7 +140,9 @@ default (see step 4 below).
    Edit `OUT` at the top of the script to point at your own directory.
 
 2. Create a Vivado project for `xc7a35tcpg236-1` and add `rtl/*.v` as design sources, `sim/*.v` as
-   simulation sources, and both files in `constraints/` as constraints.
+   simulation sources, and both files in `constraints/` as constraints. Leave `bench/` out until
+   you reach the area comparison in step 9; those modules are alternative synthesis tops and are
+   not part of the datapath.
 
 3. Edit the absolute `.mem` paths inside the testbenches to match the directory you used in step 1.
    They currently point at a local Windows path. Forward slashes are required inside Verilog
@@ -155,6 +162,11 @@ default (see step 4 below).
 
 8. Set `PORT` in `host/host_demo.py` to your board's COM port and run it. A timeout on image 0
    indicates a serial or wiring problem, not an RTL problem.
+
+9. To reproduce the area comparison, add `bench/*.v`, set one benchmark module as top, run
+   synthesis, then Open Synthesized Design and `report_utilization`. See `bench/README.md` for the
+   expected Bonded IOB count of each variant, which is the fastest way to confirm the intended
+   module is actually the one being measured.
 
 ---
 
@@ -192,6 +204,9 @@ The UART bridge added 502 timing endpoints and cost zero slack.
 A RAMB18 holds 18,432 bits, so at this image width both variants fit in the same single tile. The
 memory saving must therefore be quoted as distributed-RAM primitives (RAMS64E), not block-RAM tile
 count.
+
+The `DW` parameter in `rtl/line_buffer_ram.v` is the swept variable and is currently left at 8,
+matching the last recorded run. Set it to 4 for the other half of the table.
 
 ### Shift PE vs multiplier baseline
 
@@ -234,9 +249,9 @@ accelerator is usually assumed to support.
   from quantizing a trained network.
 - **The on-board demo has not been run yet.** Timing closes, the bitstream builds, and simulation
   is bit-exact, but the hardware loopback result is still outstanding.
-- Benchmark comparison modules (`pe_mult_baseline`, `pe_array_3x3_baseline` and their
-  runtime-weight variants) were built only to produce the area table above and are deliberately
-  not included here.
+- **The benchmark modules in `bench/` are unverified.** They were built to be measured, not to be
+  simulated, so no testbench checks their functional correctness. Only their area numbers are
+  used, and only under a structure deliberately identical to `pe_array_3x3.v`.
 
 ---
 
@@ -250,3 +265,6 @@ accelerator is usually assumed to support.
   `xelab.exe` and `xvlog.exe`, delete the `.sim` directory, and reopen.
 - After Set as Top, confirm the bold root in the Sources hierarchy and check Bonded IOB against
   the expected port count before running implementation.
+- Two modules with the same name in different files will be silently tolerated by the Vivado GUI
+  as a warning, but which one is elaborated is not guaranteed. Keep exactly one file per module
+  name.
